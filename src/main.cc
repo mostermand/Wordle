@@ -94,6 +94,7 @@ void eventLoop(std::string solution, const std::vector<std::string>& dict) {
             if(guessn < tableLength) {
                 //not last guess
             } else {
+                printTable(table, table_comparisons);
                 std::cout<<"The correct answer was: "<<solution<<"\n";
                 std::getline(std::cin, line);
                 return;
