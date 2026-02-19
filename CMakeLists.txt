@@ -5,8 +5,8 @@ find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
 
 include_directories(src)
 
-add_executable(Wordle src/main.cc src/dictionary.cc)
-add_executable(Wordle_test test/dictionary_test.cc src/dictionary.cc)
+add_executable(Wordle src/main.cc src/dictionary.cc src/wordle.cc)
+add_executable(Wordle_test test/main_test.cc test/dictionary_test.cc src/dictionary.cc test/wordle_test.cc src/wordle.cc)
 
 target_link_libraries(Boost::program_options)
 

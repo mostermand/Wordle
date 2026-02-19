@@ -1,7 +1,11 @@
-#define BOOST_TEST_MODULE dictionary_test
-#include <boost/test/included/unit_test.hpp>
+//#define BOOST_TEST_MODULE dictionary_test
+#include <boost/test/unit_test.hpp>
+
+#include <fstream>
 
 #include "dictionary.h"
+
+BOOST_AUTO_TEST_SUITE(dictionary_test)
 
 BOOST_AUTO_TEST_CASE(compare_dictionary_file) {
   std::ifstream wordle_ord("data/wordle_ord.txt");
@@ -91,3 +95,5 @@ BOOST_AUTO_TEST_CASE(pos_match_imply_gen_match) {
     comparison.clear();
   }
 }
+
+BOOST_AUTO_TEST_SUITE_END()
