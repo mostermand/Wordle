@@ -31,6 +31,7 @@ BOOST_AUTO_TEST_CASE(wordle_session) {
     BOOST_TEST(allgreen);
 
     //Does the game object agree that the game has been won?
+    BOOST_TEST(game.hasFinished());
     BOOST_TEST(game.hasWon());
 }
 
@@ -52,6 +53,27 @@ BOOST_AUTO_TEST_CASE(double_letter) {
 
     BOOST_TEST((state.colorTable.back()[0] == LetterColor::Yellow));
     BOOST_TEST((state.colorTable.back()[2] == LetterColor::Green));
+}
+
+BOOST_AUTO_TEST_CASE(runout_attempts) {
+    std::string solution = "wager";
+    std::vector<std::string> dictionary = {"naval", "wager", "spool", "ozone"};
+    WordleGame game(dictionary, solution);
+    const WordleState& state = game.getState();
+
+    game.guess("naval");
+    game.guess("naval");
+    game.guess("naval");
+    game.guess("naval");
+    game.guess("naval");
+
+    BOOST_TEST(game.hasFinished() == false);
+    BOOST_TEST(game.hasWon() == false);
+
+    game.guess("naval");
+
+    BOOST_TEST(game.hasFinished() == true);
+    BOOST_TEST(game.hasWon() == false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
