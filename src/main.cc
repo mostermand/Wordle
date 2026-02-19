@@ -12,95 +12,87 @@
 #include <windows.h>
 
 #include "dictionary.h"
+#include "wordle.h"
 
 //Used for console text color
 static HANDLE hStdOut;
 static WORD defaultColor;
 
-template <std::size_t tableLength>
-void printTable(const std::array<std::string, tableLength> table, const std::array<std::vector<std::pair<bool, bool> >, tableLength> table_comparisons) {
-    const std::string alphabet = "qwertyuiopasdfghjklzxcvbnm";
-    std::vector<std::array<bool, 3> > alphabetCmp(alphabet.size(), {false, false, false});
-
-    for(std::size_t i = 0; i < tableLength; ++i) {
-        for(std::size_t j = 0; j < table[i].size(); ++j) {
-            //Find letters position in alphabet
-            auto letterIndex = alphabet.find(table[i][j]);
-
+void printTable(const WordleState& state) {
+    for(std::size_t i = 0; i < 6; ++i) {
+        for(std::size_t j = 0; j < 5; ++j) {
             std::cout<<"[ ";
-            if(table_comparisons[i][j].first) {
-                //Letter is positional match
-                SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN);
-                //Mark letter as green
-                alphabetCmp[letterIndex][0] = true;
-            } else if(table_comparisons[i][j].second) {
-                //Letter is general match
-                SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN);
-                //Mark letter as yellow
-                alphabetCmp[letterIndex][1] = true;
+            if(i < state.table.size()) {
+                switch(state.colorTable[i][j])
+                {
+                case LetterColor::Green:
+                    //Console color green
+                    SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN);
+                    break;
+                case LetterColor::Yellow:
+                    //Console color yellow
+                    SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN);
+                    break;
+                default:
+                    //Console color blue
+                    SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
+                }
+                std::cout<<(char)std::toupper(state.table[i][j]);
+                SetConsoleTextAttribute(hStdOut, defaultColor);
             } else {
-                //Letter is no match
-                alphabetCmp[letterIndex][2] = true;
+                std::cout<<" ";
             }
-            std::cout<<(char)std::toupper(table[i][j]);
-            SetConsoleTextAttribute(hStdOut, defaultColor);
             std::cout<<" ]";
-        }
-        for(std::size_t j = 0; j < 5-table[i].size(); ++j) {
-            //print the remaining table as empty
-            std::cout<<"[   ]";
         }
         std::cout<<"\n";
     }
     //print alphabet
     std::cout<<"\n";
-    for(std::size_t i = 0; i < alphabet.size(); ++i) {
-        if(alphabetCmp[i][2]) {
-            SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
-        } else if(alphabetCmp[i][0]) {
+    for(std::size_t i = 0; i < state.alphabet.size(); ++i) {
+        switch(state.alphabetColor[i])
+        {
+        case LetterColor::Green:
             SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN);
-        } else if(alphabetCmp[i][1]) {
+            break;
+        case LetterColor::Yellow:
             SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN);
+            break;
+        case LetterColor::Gray:
+            SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
+            break;
+        case LetterColor::White:
+            SetConsoleTextAttribute(hStdOut, defaultColor);
+            break;
         }
-        std::cout<<(char)std::toupper(alphabet[i]);
-        SetConsoleTextAttribute(hStdOut, defaultColor);
+        std::cout<<(char)std::toupper(state.alphabet[i]);
     }
+    SetConsoleTextAttribute(hStdOut, defaultColor);
     std::cout<<"\n";
 }
 
-void eventLoop(std::string solution, const std::vector<std::string>& dict) {
-    const std::size_t tableLength = 6;
-    std::array<std::string, tableLength> table = {};
-    std::array<std::vector<std::pair<bool, bool> >, tableLength> table_comparisons = {};
-
+void eventLoop(WordleGame& game, std::string solution) {
     std::string line;
-    std::size_t guessn = 0;
+    const WordleState& state = game.getState();
+
+    printTable(state);
     while(true) {
-        printTable(table, table_comparisons);
         std::cout<<">";
         std::getline(std::cin, line);
-        if(inDict(line, dict)) {
-            //make a guess
-            table[guessn] = line;
-            matchWord(line, solution, table_comparisons[guessn]);
 
-            ++guessn;
-            if(line == solution) {
-                printTable(table, table_comparisons);
+        if(game.guess(line)) {
+            std::cout<<"Word is not in dictionary\n\n";
+        }
+        printTable(state);
+        if(game.hasFinished()) {
+            if(game.hasWon()) {
                 std::cout<<"Congratulations!\n";
                 std::getline(std::cin, line);
                 return;
-            }
-            if(guessn < tableLength) {
-                //not last guess
             } else {
-                printTable(table, table_comparisons);
                 std::cout<<"The correct answer was: "<<solution<<"\n";
                 std::getline(std::cin, line);
                 return;
             }
-        } else {
-            std::cout<<"Word is not in dictionary\n\n";
         }
     }
 }
@@ -124,5 +116,7 @@ int main(int argc, char *argv[]) {
     readDict(wordle_ord, dict);
     solution = dict[rand()%dict.size()];
 
-    eventLoop(solution, dict);
+    WordleGame game(dict, solution);
+
+    eventLoop(game, solution);
 }
