@@ -50,24 +50,14 @@ int WordleGame::guess(std::string candidate) {
     //Add another row to the color table; initialized to gray
     this->state.colorTable.emplace_back(std::initializer_list{LetterColor::Gray, LetterColor::Gray, LetterColor::Gray, LetterColor::Gray, LetterColor::Gray});
 
-    //Mark letters in word as green
+    //Mark letters in word as green and yellow
     for(int i = 0; i < 5; ++i) {
         if(solution[i] == candidate[i]) {
             this->state.colorTable.back()[i] = LetterColor::Green;
-        }
-    }
-    //Mark letters in word as yellow
-    for(int i = 0; i < 5; ++i) {
-        //Letter is not green
-        if(this->state.colorTable.back()[i] != LetterColor::Green) {
-            //Find the index of the first occurence of the letter in solution that is not already a direct match
-            std::size_t find_index = this->solution.find(this->state.table.back()[i], 0);
-            //Indexing by find_index is safe since && shortcircuits
-            while(find_index != std::string::npos && this->state.colorTable.back()[find_index] == LetterColor::Green) {
-                find_index = this->solution.find(this->state.table.back()[i], find_index+1);
-            }
-            if(find_index != std::string::npos) {
-                this->state.colorTable.back()[i] = LetterColor::Yellow;
+        } else {
+            std::size_t find_index = candidate.find(solution[i]);
+            if(find_index != std::string::npos && this->state.colorTable.back()[find_index] == LetterColor::Gray) {
+                this->state.colorTable.back()[find_index] = LetterColor::Yellow;
             }
         }
     }

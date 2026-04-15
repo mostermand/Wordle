@@ -38,6 +38,7 @@ void printTable(const WordleState& state) {
                     SetConsoleTextAttribute(hStdOut, FOREGROUND_BLUE);
                 }
                 std::cout<<(char)std::toupper(state.table[i][j]);
+                //Console color reset
                 SetConsoleTextAttribute(hStdOut, defaultColor);
             } else {
                 std::cout<<" ";
